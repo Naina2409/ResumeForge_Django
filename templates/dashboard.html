@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="app-shell shell">
+  <aside class="sidebar"><div class="side-label">WORKSPACE</div><a class="side-link active" href="{% url 'dashboard' %}">▦ <span>Overview</span></a><a class="side-link" href="{% url 'resume_upload' %}">＋ <span>My resumes</span></a><a class="side-link" href="{% url 'job_create' %}">▤ <span>Job descriptions</span></a><a class="side-link" href="{% url 'analysis_history' %}">◷ <span>Analysis history</span></a><div class="side-help"><span>✦</span><b>Make your next move count.</b><small>Compare your experience with the roles you're targeting.</small></div></aside>
+  <section class="workspace">
+    <div class="page-heading"><div><span class="eyebrow">YOUR WORKSPACE</span><h1>Welcome back, {{ user.first_name|default:user.username }}.</h1><p>Here's a snapshot of your job-readiness journey.</p></div><a class="button" href="{% url 'resume_upload' %}">＋ Upload resume</a></div>
+    <div class="stat-grid"><div class="stat-card"><span class="stat-label">RESUMES</span><strong>{{ resumes.count }}</strong><small>Uploaded to your workspace</small></div><div class="stat-card"><span class="stat-label">ANALYSES RUN</span><strong>{{ total_analyses }}</strong><small>Resume-to-role comparisons</small></div><div class="stat-card"><span class="stat-label">AVERAGE MATCH</span><strong>{{ average_score }}<em>%</em></strong><small>Across your saved analyses</small></div></div>
+    <div class="content-grid">
+      <section class="panel"><div class="panel-heading"><div><h2>Your resumes</h2><p>Manage the documents you want to analyze.</p></div><a href="{% url 'resume_upload' %}" class="subtle-link">Add new ↗</a></div>
+        {% for resume in resumes %}<div class="list-row"><span class="file-icon">PDF</span><div class="list-main"><b>{{ resume.title }}</b><small>{{ resume.file.name|slice:"0:45" }} · {{ resume.uploaded_at|date:"d M Y" }}</small></div><a class="icon-link" href="{% url 'resume_detail' resume.pk %}">View ↗</a></div>{% empty %}<div class="empty-state"><span>▤</span><b>No resume uploaded yet</b><p>Upload a PDF or DOCX to get started.</p><a class="button button-small" href="{% url 'resume_upload' %}">Upload resume</a></div>{% endfor %}
+      </section>
+      <section class="panel"><div class="panel-heading"><div><h2>Job descriptions</h2><p>Roles you're interested in.</p></div><a href="{% url 'job_create' %}" class="subtle-link">Add new ↗</a></div>
+        {% for job in jobs %}<div class="list-row"><span class="job-icon">↗</span><div class="list-main"><b>{{ job.title }}</b><small>{{ job.company|default:"Company not specified" }} · {{ job.created_at|date:"d M Y" }}</small></div><a class="icon-link" href="{% url 'job_edit' job.pk %}">Edit</a> · <form method="post" action="{% url 'job_delete' job.pk %}" class="inline-form" onsubmit="return confirm('Delete this job description?')">{% csrf_token %}<button class="nav-button" type="submit">Delete</button></form> · <a class="icon-link" href="{% url 'analysis_run_for_job' job.pk %}">Analyze ↗</a></div>{% empty %}<div class="empty-state compact"><span>▧</span><b>No job descriptions saved</b><p>Add a role to compare against your resume.</p><a class="subtle-link" href="{% url 'job_create' %}">Add a job description ↗</a></div>{% endfor %}
+      </section>
+    </div>
+    <section class="panel history-panel"><div class="panel-heading"><div><h2>Recent analyses</h2><p>Your latest resume-to-role comparisons.</p></div><a href="{% url 'analysis_history' %}" class="subtle-link">View history ↗</a></div>
+      {% for item in analyses %}<a class="analysis-row" href="{% url 'analysis_detail' item.pk %}"><div class="analysis-score">{{ item.score_percent }}%</div><div class="list-main"><b>{{ item.job_description.title }}</b><small>{{ item.resume.title }} · {{ item.created_at|date:"d M Y, H:i" }}</small></div><span class="status-pill">{{ item.label }}</span><span>→</span></a>{% empty %}<div class="empty-state compact"><b>Your analysis history will appear here</b><p>Upload a resume, add a job description and run your first analysis.</p><a class="button button-small" href="{% url 'analysis_run' %}">Run an analysis</a></div>{% endfor %}
+    </section>
+  </section>
+</div>
+{% endblock %}
